@@ -2,7 +2,7 @@
 
 A Quickshell plugin for Omarchy that combines a bar widget for selecting the focused window's width in Hyprland's scrolling layout with configurable screen hot corners.
 
-The compact card offers narrow, normal, wide, full-width, and fullscreen actions. Expand it to customize the three preset percentages. Values are stored in `~/.config/omarchy/column-width.json`.
+The compact card offers narrow, normal, wide, full-width, fullscreen, center, close-focused-window, and app-menu actions. The app-menu action uses Omarchy's Apps glyph and opens its native Apps grid. Its width glyphs use the supplied compact PNGs, while the expanded preset cards use the framed variants and the bar button uses `column_white.png`. Expand the card to customize the three preset percentages. Values are stored in `~/.config/omarchy/column-width.json`.
 
 Hot corners work on every monitor. By default, the top-left corner opens the Column Control popup. In the expanded card, adjust trigger size and delay, then click a corner's action to cycle between disabled, opening Column Control, and showing the desktop. These settings are saved to `~/.config/omarchy/hot-corners.json`. You can still configure argument-list commands there:
 
@@ -17,7 +17,7 @@ Hot corners work on every monitor. By default, the top-left corner opens the Col
 }
 ```
 
-Corner names are `top-left`, `top-right`, `bottom-left`, and `bottom-right`. Preset actions are `open-column-control`, `show-desktop`, `focus-left`, `focus-right`, and `center-focused`; `command` with a non-empty argument array is also supported. Unlisted corners are disabled. The default corner configuration opens Column Control from the top-left, centers the focused column from the top-right, and focuses left or right from the lower corners.
+Corner names are `top-left`, `top-right`, `bottom-left`, and `bottom-right`. Preset actions are `open-column-control`, `show-desktop`, `focus-left`, `focus-right`, `center-focused`, and `close-focused`; `command` with a non-empty argument array is also supported. Unlisted corners are disabled. The default corner configuration opens Column Control from the top-left, centers the focused column from the top-right, and focuses left or right from the lower corners.
 
 ## Install
 
