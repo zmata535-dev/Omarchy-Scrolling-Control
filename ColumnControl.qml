@@ -26,6 +26,7 @@ Ui.BarWidget {
   property int widePercent: 92
   readonly property string configPath: Quickshell.env("HOME") + "/.config/omarchy/column-width.json"
   readonly property string hotCornerConfigPath: Quickshell.env("HOME") + "/.config/omarchy/hot-corners.json"
+  readonly property var appLibrary: bar && bar.shell ? bar.shell.appLibrary : null
   readonly property color foreground: bar ? bar.barForeground : Commons.Color.foreground
   readonly property color iconForeground: Commons.Color.popups.text
   readonly property var hotCornerService: bar && bar.shell && typeof bar.shell.serviceFor === "function"
@@ -48,6 +49,9 @@ Ui.BarWidget {
       if (Math.abs(presets[i] - percent) < Math.abs(nearest - percent)) nearest = presets[i]
     }
     return "rect_" + nearest + "_framed.png"
+  }
+  function compactFramedGlyphFor(percent) {
+    return "compact_" + framedGlyphFor(percent)
   }
   function isFloatingWindow(target) {
     if (!target) return false
@@ -121,6 +125,14 @@ Ui.BarWidget {
     actionTriggered = false
     expanded = true
     opened = true
+  }
+  function openApps() {
+    close()
+    appGrid.open()
+  }
+  function openQNote() {
+    close()
+    qNote.open()
   }
   function close() {
     openRetry.stop()
@@ -373,8 +385,19 @@ Ui.BarWidget {
     target: root.moduleName
     function open(): void { root.open() }
     function openMoreOptions(): void { root.openMoreOptions() }
+    function openApps(): void { root.openApps() }
+    function openQNote(): void { root.openQNote() }
     function close(): void { root.close() }
     function toggle(): void { root.toggle() }
+  }
+
+  AppGrid {
+    id: appGrid
+    appLibrary: root.appLibrary
+  }
+
+  QNotePanel {
+    id: qNote
   }
 
   Ui.PopupCard {
@@ -386,7 +409,7 @@ Ui.BarWidget {
     triggerMode: "hover"
     centerOnBar: false
     padding: root.expanded ? Style.spacing.popupPadding : 0
-    contentWidth: popup.fittedContentWidth(root.expanded ? Style.space(225) : Style.space(136))
+    contentWidth: popup.fittedContentWidth(root.expanded ? Style.space(225) : Style.space(82))
     contentHeight: popup.fittedContentHeight(content.implicitHeight)
     onContainsMouseChanged: if (containsMouse) root.pointerVisited = true
 
@@ -395,15 +418,10 @@ Ui.BarWidget {
       width: parent.width
       spacing: Style.space(12)
 
-      Rectangle {
+      Item {
         visible: !root.expanded
-        width: popup.fittedContentWidth(Style.space(136))
-        anchors.horizontalCenter: parent.horizontalCenter
+        width: parent.width
         implicitHeight: compactActions.height + Style.space(6)
-        radius: Style.cornerRadius
-        color: Commons.Color.popups.background
-        border.width: 1
-        border.color: Commons.Color.popups.border
 
         Grid {
           id: compactActions
@@ -411,20 +429,23 @@ Ui.BarWidget {
             top: parent.top
             left: parent.left
             right: parent.right
-            margins: Style.space(3)
+            leftMargin: Style.space(2)
+            rightMargin: Style.space(2)
+            topMargin: Style.space(3)
           }
-          height: Style.space(99)
-          columns: 3
-          columnSpacing: Style.space(3)
+          height: Style.space(120)
+          columns: 2
+          columnSpacing: Style.space(2)
           rowSpacing: Style.space(3)
 
           Repeater {
           model: [
-            { label: "Narrow " + root.narrowPercent + "%", kind: "narrow", percent: root.narrowPercent, glyph: root.framedGlyphFor(root.narrowPercent) },
-            { label: "Normal " + root.normalPercent + "%", kind: "normal", percent: root.normalPercent, glyph: root.framedGlyphFor(root.normalPercent) },
-            { label: "Wide " + root.widePercent + "%", kind: "wide", percent: root.widePercent, glyph: root.framedGlyphFor(root.widePercent) },
-            { label: "Full width", kind: "fullwidth", percent: 100, glyph: "arrow_horizontal_framed.png" },
-            { label: "Fullscreen", kind: "fullscreen", fullscreen: true, glyph: "rect_fullscreen_framed.png" },
+            { label: "30%", kind: "preset", percent: 30, glyph: root.compactFramedGlyphFor(30) },
+            { label: "Narrow " + root.narrowPercent + "%", kind: "narrow", percent: root.narrowPercent, glyph: root.compactFramedGlyphFor(root.narrowPercent) },
+            { label: "Normal " + root.normalPercent + "%", kind: "normal", percent: root.normalPercent, glyph: root.compactFramedGlyphFor(root.normalPercent) },
+            { label: "Wide " + root.widePercent + "%", kind: "wide", percent: root.widePercent, glyph: root.compactFramedGlyphFor(root.widePercent) },
+            { label: "Full width", kind: "fullwidth", percent: 100, icon: "fullwidth" },
+            { label: "Fullscreen", kind: "fullscreen", fullscreen: true, glyph: "compact_rect_fullscreen_framed.png" },
             { label: "Center focused", kind: "center", icon: "center" },
             { label: "Close app", kind: "close", icon: "close" }
           ]
@@ -432,20 +453,18 @@ Ui.BarWidget {
           delegate: Rectangle {
             id: actionButton
             required property var modelData
-            width: (parent.width - Style.space(3) * 2) / 3
-            height: Style.space(31)
+            width: (parent.width - Style.space(2)) / 2
+            height: Style.spaceReal(28.5)
             scale: 0.7
             radius: Style.cornerRadius
             color: actionMouse.containsMouse ? Style.hoverFillFor(root.iconForeground, Commons.Color.accent) : "transparent"
-            border.width: actionMouse.containsMouse ? 1 : 0
-            border.color: Commons.Color.accent
+            border.width: 0
             Behavior on color { ColorAnimation { duration: Style.duration(120) } }
-            Behavior on border.width { NumberAnimation { duration: Style.duration(120) } }
 
             Image {
               anchors.fill: parent
               visible: modelData.kind === "center"
-              source: Qt.resolvedUrl("assets/column_control_frame.png")
+              source: Qt.resolvedUrl("assets/compact_column_control_frame.png")
               fillMode: Image.Stretch
               smooth: true
               layer.enabled: true
@@ -458,8 +477,8 @@ Ui.BarWidget {
             Canvas {
               id: actionCanvas
               anchors.centerIn: parent
-              width: modelData.kind === "center" ? parent.width : Math.min(parent.width, parent.height)
-              height: modelData.kind === "center" ? parent.height : width
+              width: modelData.kind === "center" || modelData.kind === "fullwidth" ? parent.width : Math.min(parent.width, parent.height)
+              height: modelData.kind === "center" || modelData.kind === "fullwidth" ? parent.height : width
               visible: !modelData.glyph
               property var action: modelData
               onActionChanged: requestPaint()
@@ -471,7 +490,7 @@ Ui.BarWidget {
                 ctx.lineWidth = action.icon === "close" ? 1.1 : 1.7
                 ctx.lineCap = "round"
                 ctx.lineJoin = "round"
-                if (action.icon !== "expand" && action.icon !== "close" && action.icon !== "center" && action.icon !== "apps") ctx.strokeRect(1.5, 1.5, 21, 21)
+                if (action.icon !== "expand" && action.icon !== "close" && action.icon !== "center" && action.icon !== "fullwidth" && action.icon !== "apps") ctx.strokeRect(1.5, 1.5, 21, 21)
 
                 if (action.icon === "fullscreen") {
                   ctx.beginPath()
@@ -503,19 +522,25 @@ Ui.BarWidget {
                   ctx.moveTo(8, 8); ctx.lineTo(16, 16)
                   ctx.moveTo(16, 8); ctx.lineTo(8, 16)
                   ctx.stroke()
-                } else if (action.icon === "center") {
+                } else if (action.icon === "fullwidth" || action.icon === "center") {
                   ctx.lineWidth = 1.7
-                  ctx.fillStyle = root.iconForeground.toString()
                   ctx.beginPath()
-                  ctx.moveTo(4.2, 11.45); ctx.lineTo(9.55, 11.45)
-                  ctx.lineTo(9.55, 10.35); ctx.lineTo(12, 12)
-                  ctx.lineTo(9.55, 13.65); ctx.lineTo(9.55, 12.55)
-                  ctx.lineTo(4.2, 12.55); ctx.closePath()
-                  ctx.moveTo(19.8, 11.45); ctx.lineTo(14.45, 11.45)
-                  ctx.lineTo(14.45, 10.35); ctx.lineTo(12, 12)
-                  ctx.lineTo(14.45, 13.65); ctx.lineTo(14.45, 12.55)
-                  ctx.lineTo(19.8, 12.55); ctx.closePath()
-                  ctx.fill()
+                  if (action.icon === "fullwidth") {
+                    // ⮜-⮞: arrows point outward, with a short center dash.
+                    ctx.moveTo(1, 12); ctx.lineTo(10, 12)
+                    ctx.moveTo(5, 7); ctx.lineTo(1, 12); ctx.lineTo(5, 17)
+                    ctx.moveTo(14, 12); ctx.lineTo(23, 12)
+                    ctx.moveTo(19, 7); ctx.lineTo(23, 12); ctx.lineTo(19, 17)
+                    ctx.moveTo(10.8, 15); ctx.lineTo(13.2, 15)
+                  } else {
+                    // ⮞_⮜: arrows point inward, with a short center underscore.
+                    ctx.moveTo(1, 12); ctx.lineTo(10, 12)
+                    ctx.moveTo(7, 9); ctx.lineTo(10, 12); ctx.lineTo(7, 15)
+                    ctx.moveTo(23, 12); ctx.lineTo(14, 12)
+                    ctx.moveTo(17, 9); ctx.lineTo(14, 12); ctx.lineTo(17, 15)
+                    ctx.moveTo(10.8, 15); ctx.lineTo(13.2, 15)
+                  }
+                  ctx.stroke()
                 } else if (action.icon === "apps") {
                   // The Apps glyph is rendered below.
                 } else {
@@ -546,6 +571,41 @@ Ui.BarWidget {
               layer.effect: MultiEffect {
                 colorization: 1.0
                 colorizationColor: root.iconForeground
+              }
+            }
+
+            Canvas {
+              id: dashedBorder
+              anchors.fill: parent
+              visible: modelData.kind !== "close"
+              onPaint: {
+                var ctx = getContext("2d")
+                ctx.clearRect(0, 0, width, height)
+                ctx.strokeStyle = actionMouse.containsMouse ? Commons.Color.accent.toString() : root.iconForeground.toString()
+                ctx.lineWidth = 1
+                var inset = 1
+                var dash = 2
+                var step = 4
+                for (var x = inset; x < width - inset; x += step) {
+                  ctx.beginPath()
+                  ctx.moveTo(x, inset)
+                  ctx.lineTo(Math.min(x + dash, width - inset), inset)
+                  ctx.moveTo(x, height - inset)
+                  ctx.lineTo(Math.min(x + dash, width - inset), height - inset)
+                  ctx.stroke()
+                }
+                for (var y = inset; y < height - inset; y += step) {
+                  ctx.beginPath()
+                  ctx.moveTo(inset, y)
+                  ctx.lineTo(inset, Math.min(y + dash, height - inset))
+                  ctx.moveTo(width - inset, y)
+                  ctx.lineTo(width - inset, Math.min(y + dash, height - inset))
+                  ctx.stroke()
+                }
+              }
+              Connections {
+                target: actionMouse
+                function onContainsMouseChanged() { dashedBorder.requestPaint() }
               }
             }
 

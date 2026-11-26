@@ -2,7 +2,7 @@
 
 A Quickshell plugin for Omarchy that combines a bar widget for selecting the focused window's width in Hyprland's scrolling layout with configurable screen hot corners.
 
-The compact card offers narrow, normal, wide, full-width, fullscreen, center, close-focused-window, and app-menu actions. The app-menu action uses Omarchy's Apps glyph and opens its native Apps grid. Its width glyphs use the supplied compact PNGs, while the expanded preset cards use the framed variants and the bar button uses `column_white.png`. Expand the card to customize the three preset percentages. Values are stored in `~/.config/omarchy/column-width.json`.
+The compact card offers narrow, normal, wide, full-width, fullscreen, center, close-focused-window, and app-menu actions. The Apps button in the right hot-corner menu opens Column Control's app grid, which searches and launches installed apps. QNote in that menu opens a small multi-note editor; notes are saved to `~/.config/omarchy/column-control-notes.json`. The width glyphs use the supplied compact PNGs, while the expanded preset cards use the framed variants and the bar button uses `column_white.png`. Expand the card to customize the three preset percentages. Values are stored in `~/.config/omarchy/column-width.json`.
 
 Hot corners work on every monitor. By default, the top-left corner opens the Column Control popup. In the expanded card, adjust trigger size and delay, then click a corner's action to cycle between disabled, opening Column Control, and showing the desktop. These settings are saved to `~/.config/omarchy/hot-corners.json`. You can still configure argument-list commands there:
 

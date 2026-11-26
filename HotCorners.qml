@@ -160,12 +160,17 @@ Item {
   function runCornerMenuAction(action) {
     if (action === "close") closeFocusedApp()
     else if (action === "apps") {
-      Quickshell.execDetached(["omarchy-shell", "omarchy.dock", "apps"])
+      Quickshell.execDetached(["omarchy-shell", "zm.column-control", "openApps"])
       root.cornerMenuOpen = false
       root.cornerMenuPointerInside = false
       cornerMenuAutohide.stop()
     } else if (action === "more") {
       Quickshell.execDetached(["omarchy-shell", "zm.column-control", "openMoreOptions"])
+      root.cornerMenuOpen = false
+      root.cornerMenuPointerInside = false
+      cornerMenuAutohide.stop()
+    } else if (action === "qnote") {
+      Quickshell.execDetached(["omarchy-shell", "zm.column-control", "openQNote"])
       root.cornerMenuOpen = false
       root.cornerMenuPointerInside = false
       cornerMenuAutohide.stop()
@@ -352,6 +357,19 @@ Item {
               HoverHandler { id: moreHover }
             }
             Ui.Button {
+              id: qnoteButton
+              width: parent.width
+              height: Style.space(44)
+              scale: 0.7
+              iconText: "󰈙"
+              iconSize: Style.space(26)
+              foreground: Commons.Color.popups.text
+              bordered: true
+              onClicked: root.runCornerMenuAction("qnote")
+
+              HoverHandler { id: qnoteHover }
+            }
+            Ui.Button {
               id: powerButton
               width: parent.width
               height: Style.space(44)
@@ -442,6 +460,47 @@ Item {
               anchors.centerIn: parent
               textFormat: Text.PlainText
               text: "More options"
+              color: Commons.Color.tooltip.text
+              font.family: Style.font.family
+              font.pixelSize: Style.font.bodySmall
+            }
+          }
+        }
+
+        PopupWindow {
+          id: qnoteTooltipWindow
+          visible: cornerMenuWindow.visible && qnoteHover.hovered
+          color: "transparent"
+          implicitWidth: qnoteTooltipBubble.implicitWidth
+          implicitHeight: qnoteTooltipBubble.implicitHeight
+          anchor {
+            id: qnoteTooltipAnchor
+            window: cornerMenuWindow
+            adjustment: PopupAdjustment.Slide
+            edges: Edges.Top | Edges.Left
+            gravity: Edges.Bottom | Edges.Right
+            rect.width: 1
+            rect.height: 1
+            onAnchoring: {
+              var point = cornerMenuWindow.contentItem.mapFromItem(qnoteButton, 0, 0)
+              qnoteTooltipAnchor.rect.x = Math.round(point.x - qnoteTooltipWindow.implicitWidth - Style.space(12))
+              qnoteTooltipAnchor.rect.y = Math.round(point.y + (qnoteButton.height - qnoteTooltipWindow.implicitHeight) / 2)
+            }
+          }
+          Ui.BorderSurface {
+            id: qnoteTooltipBubble
+            anchors.fill: parent
+            implicitWidth: qnoteTooltipLabel.implicitWidth + Style.space(16)
+            implicitHeight: qnoteTooltipLabel.implicitHeight + Style.space(10)
+            color: Commons.Color.tooltip.background
+            borderSpec: Border.localOrSurfaceSpec("tooltip", "border", Commons.Color.tooltip.border,
+              Commons.Color.tooltip.border, Style.normalBorderWidth)
+            radius: Style.cornerRadius
+            Text {
+              id: qnoteTooltipLabel
+              anchors.centerIn: parent
+              textFormat: Text.PlainText
+              text: "QNote"
               color: Commons.Color.tooltip.text
               font.family: Style.font.family
               font.pixelSize: Style.font.bodySmall
